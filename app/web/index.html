@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pdf2md — PDF para Markdown</title>
+<link rel="stylesheet" href="/static/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+</head>
+<body>
+
+<header class="topo">
+  <div class="marca">
+    <span class="logo">📄→📝</span>
+    <div>
+      <h1>pdf2md</h1>
+      <p class="sub">Conversão local de PDF para Markdown estruturado</p>
+    </div>
+  </div>
+  <div class="privacidade" id="privacidade" title="Processamento local"></div>
+</header>
+
+<main>
+
+  <!-- ── Envio ─────────────────────────────────────────────────── -->
+  <section class="cartao" id="painel-envio">
+    <div class="dropzone" id="dropzone" tabindex="0" role="button"
+         aria-label="Selecionar arquivos PDF">
+      <input type="file" id="arquivo" accept="application/pdf,.pdf" multiple hidden>
+      <input type="file" id="arquivo-pasta" webkitdirectory directory multiple hidden>
+      <div class="dz-icone">📄</div>
+      <p class="dz-titulo">Arraste PDFs ou uma pasta inteira</p>
+      <p class="dz-acoes">
+        <button type="button" class="link-botao" id="escolher-arquivos">escolher arquivos</button>
+        <span class="separador">·</span>
+        <button type="button" class="link-botao" id="escolher-pasta">escolher pasta</button>
+      </p>
+      <p class="dz-nota" id="dz-nota">Somente arquivos .pdf</p>
+    </div>
+
+    <!-- Fila montada antes de converter -->
+    <div class="selecao" id="selecao" hidden>
+      <div class="selecao-topo">
+        <strong id="selecao-titulo">—</strong>
+        <button class="link-botao" id="limpar-selecao">limpar tudo</button>
+      </div>
+      <ul class="lista-selecao" id="lista-selecao"></ul>
+      <p class="recusados" id="recusados" hidden></p>
+    </div>
+
+    <details class="opcoes">
+      <summary>Opções de conversão</summary>
+      <p class="opcoes-nota">Aplicam-se a todos os documentos do lote.</p>
+      <div class="grade">
+
+        <label class="campo">
+          <span>Reconhecimento óptico (OCR)</span>
+          <select id="ocr">
+            <option value="auto" selected>Automático — só nas páginas sem texto</option>
+            <option value="force">Forçar em todas as páginas</option>
+            <option value="never">Não usar OCR</option>
+          </select>
+          <small id="ocr-estado"></small>
+        </label>
+
+        <label class="campo">
+          <span>Idioma do OCR</span>
+          <select id="idioma"></select>
+        </label>
+
+        <label class="campo">
+          <span>Páginas</span>
+          <input type="text" id="paginas" placeholder="tudo — ou 1-10,15">
+          <small>Mesmo recorte para todos os documentos.</small>
+        </label>
+
+        <label class="campo">
+          <span>Refino por IA</span>
+          <select id="ia"></select>
+          <small id="ia-estado"></small>
+        </label>
+
+        <div class="campo campo-largo">
+          <span>Extrair</span>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" id="op-imagens" checked> Imagens</label>
+            <label class="chip"><input type="checkbox" id="op-tabelas" checked> Tabelas</label>
+            <label class="chip"><input type="checkbox" id="op-vetores" checked> Figuras vetoriais</label>
+            <label class="chip"><input type="checkbox" id="op-paginas" checked> Marcar páginas</label>
+            <label class="chip"><input type="checkbox" id="op-unir" checked> Unir parágrafos entre páginas</label>
+          </div>
+        </div>
+
+        <div class="campo campo-largo alerta-ia" id="alerta-ia" hidden>
+          <label class="chip chip-alerta">
+            <input type="checkbox" id="ia-consentimento">
+            <span>
+              <strong>Autorizo o envio de trechos destes documentos</strong> ao
+              provedor de IA selecionado. O conteúdo sai desta máquina.
+            </span>
+          </label>
+        </div>
+
+      </div>
+    </details>
+
+    <button class="botao primario" id="converter" disabled>Converter</button>
+  </section>
+
+  <!-- ── Progresso ─────────────────────────────────────────────── -->
+  <section class="cartao" id="painel-progresso" hidden>
+    <div class="progresso-topo">
+      <h2 id="progresso-titulo">Convertendo</h2>
+      <span class="percentual" id="percentual">0%</span>
+    </div>
+    <div class="barra"><div class="barra-interna" id="barra"></div></div>
+    <p class="estado" id="progresso-mensagem">Iniciando…</p>
+
+    <ul class="fila" id="fila"></ul>
+
+    <button class="botao sutil" id="cancelar">Cancelar e apagar</button>
+  </section>
+
+  <!-- ── Resultado ─────────────────────────────────────────────── -->
+  <section class="cartao" id="painel-resultado" hidden>
+    <div class="resultado-topo">
+      <h2 id="resultado-titulo">Conversão concluída</h2>
+      <span class="selo" id="selo-status">—</span>
+    </div>
+
+    <div class="indicadores" id="indicadores"></div>
+
+    <div class="pendencias" id="pendencias" hidden></div>
+    <div class="avisos" id="avisos" hidden></div>
+
+    <div class="acoes">
+      <button class="botao primario" id="baixar">Baixar tudo (.zip)</button>
+      <button class="botao" id="baixar-md">Baixar apenas o Markdown</button>
+      <button class="botao" id="baixar-csv" hidden>Quadro em CSV</button>
+      <button class="botao sutil" id="novo">Converter outros</button>
+      <button class="botao sutil perigo" id="apagar">Apagar agora</button>
+    </div>
+
+    <!-- Quadro do lote: só aparece quando há mais de um documento -->
+    <div class="quadro-lote" id="quadro-lote" hidden>
+      <h3>Quadro de conferência</h3>
+      <p class="quadro-nota">
+        Clique num documento para ver o resultado dele.
+      </p>
+      <div class="tabela-rolagem">
+        <table class="tabela-lote">
+          <thead>
+            <tr>
+              <th>Documento</th><th>Status</th><th class="num">Cobertura</th>
+              <th class="num">Págs.</th><th class="num">Tabelas</th>
+              <th class="num">Revisar</th><th class="num">Imagens</th><th class="num">OCR</th>
+            </tr>
+          </thead>
+          <tbody id="corpo-quadro"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Visualização de um documento -->
+    <div id="visualizador">
+      <div class="abas" role="tablist">
+        <button class="aba ativa" data-aba="preview" role="tab">Pré-visualização</button>
+        <button class="aba" data-aba="fonte" role="tab">Markdown</button>
+        <button class="aba" data-aba="arquivos" role="tab">Arquivos gerados</button>
+        <button class="aba" data-aba="relatorio" role="tab">Relatório</button>
+      </div>
+
+      <p class="documento-atual" id="documento-atual" hidden></p>
+
+      <div class="painel-aba" id="aba-preview"></div>
+      <pre class="painel-aba" id="aba-fonte" hidden></pre>
+      <div class="painel-aba" id="aba-arquivos" hidden></div>
+      <pre class="painel-aba" id="aba-relatorio" hidden></pre>
+    </div>
+  </section>
+
+  <!-- ── Erro ──────────────────────────────────────────────────── -->
+  <section class="cartao erro" id="painel-erro" hidden>
+    <h2>Não foi possível converter</h2>
+    <p id="erro-mensagem"></p>
+    <button class="botao" id="erro-voltar">Tentar outros arquivos</button>
+  </section>
+
+</main>
+
+<footer>
+  <span id="rodape-privacidade"></span>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
