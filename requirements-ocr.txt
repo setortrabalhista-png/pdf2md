@@ -1,0 +1,3 @@
+# ── OCR: requer Tesseract instalado no sistema ────────────────────────
+pytesseract>=0.3.13
+opencv-python-headless>=4.10   # deskew, binarização adaptativa, denoise

@@ -1,0 +1,5 @@
+# ── Motores de tabela opcionais (fallback) ────────────────────────────
+# camelot-py exige Ghostscript instalado no sistema
+# tabula-py exige Java (presente: JRE 1.8)
+camelot-py>=0.11
+tabula-py>=2.9

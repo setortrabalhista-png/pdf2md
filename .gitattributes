@@ -1,0 +1,20 @@
+# Normaliza para LF no repositório; o checkout adapta ao sistema.
+* text=auto
+
+# Scripts de shell PRECISAM de LF mesmo no Windows: um "\r" no shebang faz o
+# Linux recusar o arquivo com "bad interpreter".
+*.sh text eol=lf
+
+# Scripts do Windows são sempre CRLF — o PowerShell tolera LF, mas o .cmd
+# clássico pode tropeçar.
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binários: nunca converter.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.zip binary
+*.traineddata binary

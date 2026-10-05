@@ -1,0 +1,24 @@
+services:
+  pdf2md:
+    build: .
+    image: pdf2md:1.0.0
+    container_name: pdf2md
+    # Publica só no loopback do host: o serviço não tem autenticação.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      PDF2MD_JOB_TTL_MINUTES: "60"
+      PDF2MD_MAX_UPLOAD_MB: "200"
+      PDF2MD_OCR_DPI: "300"
+      PDF2MD_KEEP_SOURCE_PDF: "false"
+    # A área de trabalho vive em memória e some com o container: nenhum
+    # documento fica em disco depois que o serviço para.
+    tmpfs:
+      - /tmp/pdf2md:size=2g,mode=1777
+      # O sistema de arquivos é somente leitura; o Tesseract e o uvicorn
+      # ainda precisam de um /tmp gravável.
+      - /tmp:size=256m,mode=1777
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped

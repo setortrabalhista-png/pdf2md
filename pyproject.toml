@@ -1,0 +1,33 @@
+[project]
+name = "pdf2md"
+version = "1.0.0"
+description = "Conversão local de PDF para Markdown estruturado, com OCR, tabelas e imagens."
+requires-python = ">=3.11,<3.14"
+readme = "README.md"
+
+[project.scripts]
+pdf2md = "app.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "BLE"]
+ignore = [
+    "E501",                              # comprimento tratado pelo formatador
+    "RUF001", "RUF002", "RUF003",        # acentuação e travessão em texto PT-BR
+    "UP042",                             # (str, Enum) é o que o Pydantic espera
+    "RUF007",                            # zip(a, a[1:]) é mais legível aqui
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+# Depends/File/Form em argumento padrão é o idioma do FastAPI.
+"app/api/routes_jobs.py" = ["B008"]
+"app/api/routes_batches.py" = ["B008"]

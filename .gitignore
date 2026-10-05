@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.env
+
+# Saídas de conversão e material de teste — nunca versionados: podem conter
+# documento de cliente.
+saida/
+saida_*/
+saida_teste/
+tests/fixtures/*.pdf
+tests/golden/*.md
+
+# Modelos de OCR (baixados pelo instalador)
+tessdata/*.traineddata
